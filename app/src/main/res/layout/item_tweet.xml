@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content" />
 
                 <TextView
-                    android:id="@+id/tvTweetUsername"
+                    android:id="@+id/tvUserName"
                     android:layout_toRightOf="@id/tvTweetFullName"
                     style="@style/SmallLightText"
                     android:text="\@teekirol"
@@ -48,7 +48,7 @@
 
                 <TextView
                     android:id="@+id/tvTweetAge"
-                    android:layout_toRightOf="@id/tvTweetUsername"
+                    android:layout_toRightOf="@id/tvUserName"
                     style="@style/SmallLightText"
                     android:text="15m"
                     android:layout_alignParentRight="true"
@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content" />
 
                 <TextView
-                    android:id="@+id/tvTweetBody"
+                    android:id="@+id/tvBody"
                     style="@style/RegularText"
                     android:layout_below="@id/tvTweetFullName"
                     android:linksClickable="true"
@@ -72,7 +72,7 @@
                     android:id="@+id/btnReply"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
-                    android:layout_below="@id/tvTweetBody"
+                    android:layout_below="@id/tvBody"
                     style="?android:attr/borderlessButtonStyle"
                     android:background="@drawable/ic_reply"/>
                 <Button
@@ -81,7 +81,7 @@
                     android:layout_width="20dp"
                     android:layout_marginLeft="80dp"
                     android:layout_toRightOf="@id/btnReply"
-                    android:layout_below="@id/tvTweetBody"
+                    android:layout_below="@id/tvBody"
                     style="?android:attr/borderlessButtonStyle"
                     android:background="@drawable/ic_retweet"/>
                 <TextView
@@ -100,7 +100,7 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_toRightOf="@id/tvRetweetCount"
-                    android:layout_below="@id/tvTweetBody"
+                    android:layout_below="@id/tvBody"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_marginLeft="80dp"
                     android:background="@drawable/ic_favorite"/>
