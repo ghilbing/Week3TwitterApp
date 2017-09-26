@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.R;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -25,19 +26,20 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder>{
 
 
 
-    private List<Tweet> mTeets;
-    Context context;
+    private List<Tweet> mTweets;
+    Context mContext;
 
     //pass in the Tweets array in the constructor
-    public TweetAdapter(List<Tweet> tweets){
-        mTeets = tweets;
+    public TweetAdapter(Context context, List<Tweet> tweets){
+        mContext = context;
+        mTweets = tweets;
 
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        context = parent.getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
+        mContext = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(mContext);
 
         View tweetView = inflater.inflate(R.layout.item_tweet, parent, false);
         ViewHolder viewHolder = new ViewHolder(tweetView);
@@ -47,23 +49,46 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder>{
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        //Get the data according t psition
-        Tweet tweet = mTeets.get(position);
+        //Get the data according to position
+        Tweet tweet = mTweets.get(position);
 
         //populate the views according to this data
-        holder.tvUserName.setText(tweet.user.name);
-        holder.tvBody.setText(tweet.body);
+        holder.tvUserName.setText("@" + tweet.getUser().getScreenName().toString());
+        holder.tvBody.setText(tweet.getBody());
+        holder.tvFullName.setText(tweet.getUser().getName());
 
-        Glide.with(context).load(tweet.user.profileImageUrl).into(holder.ivProfileImage);
-
-
-
+        Glide.with(mContext).load(tweet.getUser().getProfileImage()).into(holder.ivProfileImage);
 
     }
 
+    public void clear() {
+        int size = this.mTweets.size();
+        this.mTweets.clear();
+        notifyItemRangeRemoved(0, size);
+    }
+
+    public void add(int position, Tweet tweet){
+        mTweets.add(position, tweet);
+        notifyItemInserted(position);
+    }
+
+    public void addAll(ArrayList<Tweet> tweets){
+        mTweets.addAll(tweets);
+        notifyDataSetChanged();
+    }
+
+    public Tweet getItem(int position){
+        return mTweets.get(position);
+    }
+
+
+
+
+
+
     @Override
     public int getItemCount() {
-        return mTeets.size();
+        return mTweets.size();
     }
 
     //for each row, inflate the layout and cache the references into ViewHolder
@@ -78,6 +103,8 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder>{
         TextView tvUserName;
         @Bind(R.id.tvBody)
         TextView tvBody;
+        @Bind(R.id.tvTweetFullName)
+        TextView tvFullName;
 
         public ViewHolder (View itemView){
             super(itemView);

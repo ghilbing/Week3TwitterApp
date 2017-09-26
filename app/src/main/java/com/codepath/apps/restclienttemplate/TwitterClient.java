@@ -1,13 +1,19 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.text.format.DateUtils;
 
 import com.codepath.oauth.OAuthBaseClient;
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.apis.TwitterApi;
 import com.github.scribejava.core.builder.api.BaseApi;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /*
  * 
@@ -26,6 +32,7 @@ public class TwitterClient extends OAuthBaseClient {
 	public static final String REST_URL = "https://api.twitter.com/1.1"; // Change this, base API URL
 	public static final String REST_CONSUMER_KEY = "eyBE2tuCFyiPwllzXzHUmGyxU";       // Change this
 	public static final String REST_CONSUMER_SECRET = "NxD5wuSF82JvvnPizqvg4L5x7ultgATKDoEV5ADCvMw2K2k9yJ"; // Change this
+	public static final int T_X_PAGE = 25;
 
 	// Landing page to indicate the OAuth flow worked in case Chrome for Android 25+ blocks navigation back to the app.
 	public static final String FALLBACK_URL = "https://codepath.github.io/android-rest-client-template/success.html";
@@ -43,14 +50,69 @@ public class TwitterClient extends OAuthBaseClient {
 	}
 	// CHANGE THIS
 	// DEFINE METHODS for different API endpoints here
-	public void getHomeTimeline(AsyncHttpResponseHandler handler) {
+	public void getHomeTimeline(String maxId, AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
 		// Can specify query string params directly or through RequestParams.
 		RequestParams params = new RequestParams();
-		params.put("count", 25);
+		params.put("count", T_X_PAGE );
         params.put("since", 1);
 		client.get(apiUrl, params, handler);
 	}
+
+	public void getUser(String name, AsyncHttpResponseHandler handler){
+		String apiUrl = getApiUrl("users/show.json");
+		RequestParams params = new RequestParams();
+		params.put("include_entities", "false");
+		params.put("screen_name", name);
+		client.get(apiUrl, params, handler);
+	}
+
+	public void getMentions(String maxId, AsyncHttpResponseHandler handler){
+		String apiUrl = getApiUrl("statuses/mentions_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("count", T_X_PAGE);
+		params.put("max_id", maxId);
+		params.put("include_rts", 1);
+		client.get(apiUrl, params, handler);
+	}
+
+	public void getUserTimeline(String username, String maxId, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/user_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("max_id", maxId);
+		params.put("screen_name", username);
+		params.put("count", T_X_PAGE);
+		client.get(apiUrl, params, handler);
+	}
+
+
+
+	// Got this from https://gist.github.com/nesquena/f786232f5ef72f6e10a7
+	public static String getTimeAgo(String rawJsonDate) {
+		String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
+		SimpleDateFormat sf = new SimpleDateFormat(twitterFormat, Locale.ENGLISH);
+		sf.setLenient(true);
+		String relativeDate = "";
+
+		try {
+			long dateMillis = sf.parse(rawJsonDate).getTime();
+			relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
+					System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		return relativeDate;
+	}
+
+	public void postUpdate(String body, AsyncHttpResponseHandler handler){
+		String apiUrl = getApiUrl("statuses/update.json");
+		RequestParams params = new RequestParams();
+		params.put("status", body);
+		client.post(apiUrl, params, handler);
+	}
+
+
 
 	/* 1. Define the endpoint URL with getApiUrl and pass a relative path to the endpoint
 	 * 	  i.e getApiUrl("statuses/home_timeline.json");
