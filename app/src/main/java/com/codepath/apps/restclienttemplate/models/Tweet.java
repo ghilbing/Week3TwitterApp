@@ -42,7 +42,7 @@ public class Tweet implements Parcelable{
         return id;
     }
 
-    public void setUid(int String) {
+    public void setUid(String id) {
         this.id = id;
     }
 

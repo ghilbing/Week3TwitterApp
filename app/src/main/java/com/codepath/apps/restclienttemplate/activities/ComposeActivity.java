@@ -3,6 +3,7 @@ package com.codepath.apps.restclienttemplate.activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,8 @@ public class ComposeActivity extends AppCompatActivity {
     EditText etNewTweet;
     @Bind(R.id.btnNewTweet)
     Button btnNewTweet;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
 
     TwitterClient client = TwitterApp.getRestClient();
 
@@ -38,6 +41,10 @@ public class ComposeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
         ButterKnife.bind(this);
+
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         btnNewTweet.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,8 +84,10 @@ public class ComposeActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.logout) {
+            TwitterApp.getRestClient().clearAccessToken();
+            Intent i = new Intent(this, LoginActivity.class);
+            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);

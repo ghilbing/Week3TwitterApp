@@ -85,6 +85,14 @@ public class TwitterClient extends OAuthBaseClient {
 		client.get(apiUrl, params, handler);
 	}
 
+	public void getCredentials(AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("account/verify_credentials.json");
+		RequestParams params = new RequestParams();
+		params.put("skip_status", 1);
+		params.put("include_entities", "false");
+		client.get(apiUrl, params, handler);
+	}
+
 
 
 	// Got this from https://gist.github.com/nesquena/f786232f5ef72f6e10a7

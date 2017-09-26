@@ -10,5 +10,6 @@
     <string name="secret">NxD5wuSF82JvvnPizqvg4L5x7ultgATKDoEV5ADCvMw2K2k9yJ</string>
     <string name="action_compose">New Tweet</string>
     <string name="action_settings">Settings</string>
+    <string name="action_logout">Logout</string>
 
 </resources>

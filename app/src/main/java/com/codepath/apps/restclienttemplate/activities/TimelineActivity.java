@@ -13,6 +13,7 @@ import android.view.MenuItem;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.restclienttemplate.R;
+import com.codepath.apps.restclienttemplate.TwitterApp;
 import com.codepath.apps.restclienttemplate.fragments.MentionsFragment;
 import com.codepath.apps.restclienttemplate.fragments.TimelineFragment;
 import com.codepath.apps.restclienttemplate.models.Tweet;
@@ -82,14 +83,15 @@ public class TimelineActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, ComposeActivity.class);
                 startActivityForResult(intent, ComposeActivity.REQUEST_CODE);
                 break;
-           /* case R.id.action_profile:
+            case R.id.action_profile:
                 Intent intent1 = new Intent(this, ProfileActivity.class);
                 startActivity(intent1);
                 break;
-            case R.id.action_settings:
-                Intent intent2 = new Intent(this, SettingsActivity.class);
-                startActivity(intent2);
-                break;*/
+            case R.id.logout:
+                TwitterApp.getRestClient().clearAccessToken();
+                Intent i = new Intent(this, LoginActivity.class);
+                startActivity(i);
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -128,7 +130,6 @@ public class TimelineActivity extends AppCompatActivity {
                     return new MentionsFragment();
                 default:
                     return new TimelineFragment();
-
             }
 
         }
