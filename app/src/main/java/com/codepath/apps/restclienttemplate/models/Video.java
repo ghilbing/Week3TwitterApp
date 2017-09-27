@@ -9,8 +9,9 @@ import java.util.List;
 /**
  * Created by gretel on 9/26/17.
  */
-
+/*
 public class Video extends Media {
+
 
     @Column(name="VideoInfo")
     VideoInfo videoInfo;
@@ -89,3 +90,4 @@ public class Video extends Media {
     }
 
 }
+*/

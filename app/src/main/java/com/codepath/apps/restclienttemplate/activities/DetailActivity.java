@@ -113,9 +113,9 @@ public class DetailActivity extends AppCompatActivity implements ComposeTweetFra
 
     private void setupVideo() {
 
-        if (mTweet.getVideo() != null && !TextUtils.isEmpty(mTweet.getVideo().getUrl())) {
+        if (mTweet.getFirstMediaUrl() != null && !TextUtils.isEmpty(mTweet.getFirstMediaUrl())) {
 
-            vvVideo.setVideoPath(mTweet.getVideo().getUrl());
+            vvVideo.setVideoPath(mTweet.getFirstMediaUrl());
             vvVideo.requestFocus();
             vvVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -135,9 +135,9 @@ public class DetailActivity extends AppCompatActivity implements ComposeTweetFra
                 load(mTweet.getUser().getProfileImage()).
                 into(ivProfileImage);
 
-        if (mTweet.getMedia() != null) {
+        if (mTweet.getFirstMediaUrl() != null) {
             Glide.with(ivMedia.getContext()).
-                    load(mTweet.getMedia().getUrl()).
+                    load(mTweet.getFirstMediaUrl()).
                     into(ivMedia);
         } else {
             ivMedia.setVisibility(View.GONE);

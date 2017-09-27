@@ -10,38 +10,44 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import com.codepath.apps.restclienttemplate.MyDatabase;
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.ForeignKey;
+import com.raizlabs.android.dbflow.annotation.PrimaryKey;
+import com.raizlabs.android.dbflow.annotation.Table;
 import com.codepath.apps.restclienttemplate.TwitterClient;
+import com.raizlabs.android.dbflow.sql.language.Select;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import static android.R.attr.excludeClass;
 import static android.R.attr.name;
 
 /**
  * Created by gretel on 9/25/17.
  */
 
-@Table(name = "tweet")
-public class Tweet extends Model {
+@Table(database = MyDatabase.class)
 
-    @Column(name="User")
-    public User user;
+public class Tweet extends BaseModel {
 
-    //private String id;
-    @Column String body;
+
+    @Column
+    @PrimaryKey
+    Long id;
+
+    @Column String text;
     @Column String createdAt;
     @Column int retweetCount;
     @Column int favoriteCount;
 
-    @Column(name = "remote_id")
-    public long tweetId;
+    private List<Entities> entities;
 
-    @Column(name="Entities", onDelete = Column.ForeignKeyAction.CASCADE)
-    Entities entities;
+    private List<ExtendedEntities> extendedEntities;
 
-    @Column(name="ExtendedEntities", onDelete = Column.ForeignKeyAction.CASCADE)
-    ExtendedEntities extendedEntities;
+    @Column
+    @ForeignKey(saveForeignKeyModel = true)
+    private User user;
+
 
     public Tweet() {
         super();
@@ -57,11 +63,11 @@ public class Tweet extends Model {
     }
 
     public String getBody() {
-        return body;
+        return text;
     }
 
     public void setBody(String body) {
-        this.body = body;
+        this.text = body;
     }
 
     public String getCreatedAt() {
@@ -90,101 +96,61 @@ public class Tweet extends Model {
     }
 
     public long getTweetId() {
-        return tweetId;
+        return id;
     }
 
     public void setTweetId(long tweetId) {
-        this.tweetId = tweetId;
+        this.id = tweetId;
     }
 
-    public final Long cascadeSave() {
-        if (user != null) {
-            User originalUser = User.findUser(user.getRemoteId());
-            if (originalUser != null) {
-                user = originalUser;
-            } else {
-                user.save();
+    public List<Entities> getEntities() {return entities;}
+
+    public List<ExtendedEntities> getExtendedEntities() { return extendedEntities;}
+
+
+    private String getFirstMediaUrlFromExtendedEntities() {
+        List<ExtendedEntities> extendedEntities = getExtendedEntities();
+        if (extendedEntities == null || entities.isEmpty()) {
+            return null;
+        }
+        for (ExtendedEntities extendedEntity : extendedEntities) {
+            if (!"videos".equals(extendedEntity.getType())) {
+                return extendedEntity.getMediaUrl();
             }
+            String videoUrl = extendedEntity.getVideoInfo().getVariants().get(0).getUrl();
+            return videoUrl;
         }
-
-        if (entities != null) {
-            entities.cascadeSave();
-        }
-
-        if (extendedEntities != null) {
-            extendedEntities.cascadeSave();
-        }
-
-        return super.save();
+        return null;
     }
 
-    public Media getMedia() {
-        List<Media> media = entities.getMedia();
-        return (media != null && media.size() > 0) ? media.get(0) : null;
-    }
-
-    public Video getVideo() {
-        List<Video> videos = null;
-        if (extendedEntities != null) {
-            extendedEntities.getExtendedMedia();
+    public String getFirstMediaUrl() {
+        String mediaUrl = getFirstMediaUrlFromExtendedEntities();
+        if (mediaUrl != null) {
+            return mediaUrl;
         }
-        return (videos != null &&  videos.size() > 0) ? videos.get(0) : null;
-    }
-
-    @Table(name = "Entities")
-    public static class Entities extends Model {
-
-        List<Media> media;
-
-        public Entities() {
-            super();
+        List<Entities> entities = getEntities();
+        if (entities == null || entities.isEmpty()) {
+            return null;
         }
-
-        public List<Media> getMedia() {
-            return getMany(Media.class, "Entities");
-        }
-
-        public final Long cascadeSave() {
-            long retVal = save();
-            if (media != null && media.size() > 0) {
-                for (Media med : media) {
-                    med.setEntities(this);
-                    med.cascadeSave();
+        for (Entities entity : entities) {
+            List<Media> mediaList = entity.getMedia();
+            if (mediaList == null || mediaList.isEmpty()) {
+                continue;
+            }
+            for (Media media : mediaList) {
+                if (media.getMediaUrl() != null) {
+                    return media.getMediaUrl();
                 }
             }
-            return retVal;
         }
-    }
-
-    @Table(name = "ExtendedEntities")
-    public static class ExtendedEntities extends Model {
-        List<Video> media;
-
-        public ExtendedEntities() {
-            super();
-        }
-
-        public List<Video> getExtendedMedia() {
-            return getMany(Video.class, "ExtendedEntities");
-        }
-
-        public final Long cascadeSave() {
-            long retVal = save();
-            if (media != null && media.size() > 0) {
-                for (Video med : media) {
-                    med.setExtendedEntities(this);
-                    med.cascadeSave();
-                }
-            }
-            return retVal;
-        }
-    }
-
-    public static Tweet findTweet(long serverId) {
-        return new Select().from(Tweet.class).where("remote_id = ?", serverId).executeSingle();
+        return null;
     }
 
 
+    public static Tweet findTweet(long userId) {
+
+        return new Select().from(Tweet.class).where(Tweet_Table.id.eq(userId)).querySingle();
+    }
 
 /*
     public static Tweet fromJson(JSONObject json) {

@@ -1,40 +1,39 @@
 package com.codepath.apps.restclienttemplate.models;
 
 import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+
+import com.codepath.apps.restclienttemplate.MyDatabase;
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
 /**
  * Created by gretel on 9/26/17.
  */
 
-@Table(name = "media")
-public class Media extends Model {
 
-    @Column
-    String type;
-    @Column
+public class Media extends BaseModel {
+
+
+    Long id;
+
     String mediaUrl;
-    @Column(name = "Entities")
-    Tweet.Entities mEntities;
 
     public Media() {
         super();
     }
 
-    public void setEntities(Tweet.Entities entities) {
-        mEntities = entities;
+    public Long getId() {
+        return id;
     }
 
-    public Long cascadeSave() {
-        return save();
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getUrl() {
+    public String getMediaUrl() {
         return mediaUrl;
     }
+
+    public void setMediaUrl(String mediaUrl) {
+        this.mediaUrl = mediaUrl;
+    }
+
+
 }

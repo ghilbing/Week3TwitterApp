@@ -16,5 +16,6 @@
     <string name="error_retweet_failed">Unable to retweet. Check your connection.</string>
     <string name="error_favorite_failed">Unable to mark as favorite, please check your connection.</string>
     <string name="error_no_internet">Please check connection</string>
+    <string name="id_user">id = ?</string>
 
 </resources>

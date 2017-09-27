@@ -1,39 +1,40 @@
 package com.codepath.apps.restclienttemplate.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 
-import com.activeandroid.annotation.Table;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.Model;
-import com.activeandroid.query.Select;
+import com.codepath.apps.restclienttemplate.R;
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.PrimaryKey;
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.sql.language.Select;
+import com.raizlabs.android.dbflow.sql.language.Where;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import com.codepath.apps.restclienttemplate.MyDatabase;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.R.attr.name;
-
 /**
  * Created by gretel on 9/25/17.
  */
-@Table(name = "user")
-public class User extends Model{
+@Table(database = MyDatabase.class)
+public class User extends BaseModel{
 
     //List the attributes
    // @Column long uid;
     @Column String name;
-    @Column String profileImage;
+    @Column String profileImageUrl;
     @Column String screenName;
-    @Column String profileBanner;
-    @Column String description;
+    @Column String profileBannerUrl;
+    @Column String tagline;
     @Column int followersCount;
-    @Column String profileBackgroundColor;
+    @Column int followingCount;
+    @Column String profileBackgroundImageUrl;
     @Column int friendsCount;
-   // @Column int statuses;
+    @Column int statuses;
 
-    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
-    public long remoteId;
+    @Column
+    @PrimaryKey long id;
 
 
     public User() {
@@ -42,11 +43,10 @@ public class User extends Model{
     }
 
     public long getRemoteId() {
-        return remoteId;
+        return id;
     }
-
     public void setRemoteId(long id) {
-        this.remoteId = id;
+        this.id = id;
     }
 
     public String getName() {
@@ -58,11 +58,11 @@ public class User extends Model{
     }
 
     public String getProfileImage() {
-        return profileImage;
+        return profileImageUrl;
     }
 
     public void setProfileImage(String userProfileImage) {
-        this.profileImage = userProfileImage;
+        this.profileImageUrl = userProfileImage;
     }
 
     public String getScreenName() {
@@ -74,19 +74,19 @@ public class User extends Model{
     }
 
     public String getProfileBanner() {
-        return profileBanner;
+        return profileBannerUrl;
     }
 
     public void setProfileBanner(String profileBanner) {
-        this.profileBanner = profileBanner;
+        this.profileBannerUrl = profileBanner;
     }
 
     public String getDescription() {
-        return description;
+        return tagline;
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.tagline = description;
     }
 
     public int getFollowersCount() {
@@ -101,45 +101,54 @@ public class User extends Model{
         return friendsCount;
     }
 
-   /* public int getStatuses() {
+    public int getFollowingCount() {return followingCount;}
+
+    public int getStatuses() {
         return statuses;
     }
 
     public void setStatuses(int statuses) {
         this.statuses = statuses;
-    }*/
+    }
 
     public void setFriendsCount(int friendsCount) {
         this.friendsCount = friendsCount;
     }
 
     public String getProfileBackgroundColor() {
-        return profileBackgroundColor;
+        return profileBackgroundImageUrl;
     }
 
     public void setProfileBackgroundColor(String profileBackgroundColor) {
-        this.profileBackgroundColor = profileBackgroundColor;
+        this.profileBackgroundImageUrl = profileBackgroundColor;
     }
 
     public static User findUser(long userId) {
-        return new Select().from(User.class).where("remote_id = ?", userId).executeSingle();
 
-    /*}
-    public static User fromJson(JSONObject json) {
+        return new Select().from(User.class).where(User_Table.id.eq(userId)).querySingle();
+
+
+    }
+
+
+   /* public static User fromJson(JSONObject json) {
         User user = new User();
         try {
-            user.remoteId = json.getLong("id_str");
+            user.id = json.getLong("id");
             user.name = json.getString("name");
-            user.profileImage = json.getString("profile_image_url");
             user.screenName = json.getString("screen_name");
-            user.description = json.getString("description");
-          //  user.statuses = json.getInt("statuses_count");
+            user.profileBackgroundImageUrl = json.getString("profile_background_image_url");
+            user.profileImageUrl = json.getString("profile_image_url");
+            user.tagline = json.getString("description");
+            user.profileBannerUrl = json.getString("profile_banner_url");
+            user.followersCount = json.getInt("followers_count");
+            user.followingCount = json.getInt("friends_count");
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return user;
-    }*/
+        return user;*/
+    }
 
    /* protected User(Parcel in) {
         remoteId = in.readLong();
@@ -175,8 +184,10 @@ public class User extends Model{
     };
 */
 
-    }
-}
+
+
+
+
 
 
 

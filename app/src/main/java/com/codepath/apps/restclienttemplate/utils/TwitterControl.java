@@ -61,7 +61,7 @@ public class TwitterControl {
                     listener.onTweetsReceived(tweets);
                 }
             });
-        } else {
+        }/* else {
             List<Tweet> queryResults;
             if (oldestTweetId > 0) {
                 queryResults = new Select().
@@ -76,7 +76,7 @@ public class TwitterControl {
                         limit(PAGE_SIZE).execute();
             }
             listener.onTweetsReceived(queryResults);
-        }
+        }*/
     }
 
     public void fetchMentionTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
@@ -204,7 +204,7 @@ public class TwitterControl {
     private Tweet parseTweetFromJSON(String response) {
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
                 excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
-                create();;
+                create();
         return gson.fromJson(response, Tweet.class);
     }
 
@@ -234,7 +234,7 @@ public class TwitterControl {
                 if (original != null) {
                     tweets.set(tweets.indexOf(tweet), original);
                 } else {
-                    tweet.cascadeSave();
+                   // tweet.cascadeSave();
                 }
             }
             ActiveAndroid.setTransactionSuccessful();
