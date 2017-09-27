@@ -25,7 +25,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class ComposeActivity extends AppCompatActivity {
 
-    public static int REQUEST_CODE = 200;
+   /* public static int REQUEST_CODE = 200;
 
     @Bind(R.id.etNewTweet)
     EditText etNewTweet;
@@ -91,6 +91,6 @@ public class ComposeActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
 }

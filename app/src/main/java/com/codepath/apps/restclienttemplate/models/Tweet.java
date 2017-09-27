@@ -8,23 +8,43 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.codepath.apps.restclienttemplate.TwitterClient;
+
+import static android.R.attr.name;
 
 /**
  * Created by gretel on 9/25/17.
  */
 
-public class Tweet implements Parcelable{
+@Table(name = "tweet")
+public class Tweet extends Model {
 
-    //list out the attributes
+    @Column(name="User")
+    public User user;
 
-    private String id;
-    private String body;
-    private String createdAt;
-    private int retweetCount;
+    //private String id;
+    @Column String body;
+    @Column String createdAt;
+    @Column int retweetCount;
+    @Column int favoriteCount;
+
+    @Column(name = "remote_id")
+    public long tweetId;
+
+    @Column(name="Entities", onDelete = Column.ForeignKeyAction.CASCADE)
+    Entities entities;
+
+    @Column(name="ExtendedEntities", onDelete = Column.ForeignKeyAction.CASCADE)
+    ExtendedEntities extendedEntities;
 
     public Tweet() {
+        super();
 
     }
 
@@ -34,16 +54,6 @@ public class Tweet implements Parcelable{
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    private User user;
-
-    public String getUid() {
-        return id;
-    }
-
-    public void setUid(String id) {
-        this.id = id;
     }
 
     public String getBody() {
@@ -70,10 +80,117 @@ public class Tweet implements Parcelable{
         this.retweetCount = retweetCount;
     }
 
+
+    public int getFavoriteCount() {
+        return favoriteCount;
+    }
+
+    public void setFavoriteCount(int favoriteCount) {
+        this.favoriteCount = favoriteCount;
+    }
+
+    public long getTweetId() {
+        return tweetId;
+    }
+
+    public void setTweetId(long tweetId) {
+        this.tweetId = tweetId;
+    }
+
+    public final Long cascadeSave() {
+        if (user != null) {
+            User originalUser = User.findUser(user.getRemoteId());
+            if (originalUser != null) {
+                user = originalUser;
+            } else {
+                user.save();
+            }
+        }
+
+        if (entities != null) {
+            entities.cascadeSave();
+        }
+
+        if (extendedEntities != null) {
+            extendedEntities.cascadeSave();
+        }
+
+        return super.save();
+    }
+
+    public Media getMedia() {
+        List<Media> media = entities.getMedia();
+        return (media != null && media.size() > 0) ? media.get(0) : null;
+    }
+
+    public Video getVideo() {
+        List<Video> videos = null;
+        if (extendedEntities != null) {
+            extendedEntities.getExtendedMedia();
+        }
+        return (videos != null &&  videos.size() > 0) ? videos.get(0) : null;
+    }
+
+    @Table(name = "Entities")
+    public static class Entities extends Model {
+
+        List<Media> media;
+
+        public Entities() {
+            super();
+        }
+
+        public List<Media> getMedia() {
+            return getMany(Media.class, "Entities");
+        }
+
+        public final Long cascadeSave() {
+            long retVal = save();
+            if (media != null && media.size() > 0) {
+                for (Media med : media) {
+                    med.setEntities(this);
+                    med.cascadeSave();
+                }
+            }
+            return retVal;
+        }
+    }
+
+    @Table(name = "ExtendedEntities")
+    public static class ExtendedEntities extends Model {
+        List<Video> media;
+
+        public ExtendedEntities() {
+            super();
+        }
+
+        public List<Video> getExtendedMedia() {
+            return getMany(Video.class, "ExtendedEntities");
+        }
+
+        public final Long cascadeSave() {
+            long retVal = save();
+            if (media != null && media.size() > 0) {
+                for (Video med : media) {
+                    med.setExtendedEntities(this);
+                    med.cascadeSave();
+                }
+            }
+            return retVal;
+        }
+    }
+
+    public static Tweet findTweet(long serverId) {
+        return new Select().from(Tweet.class).where("remote_id = ?", serverId).executeSingle();
+    }
+
+
+
+/*
     public static Tweet fromJson(JSONObject json) {
         Tweet tweet = new Tweet();
         try {
-            tweet.id = json.getString("id_str");
+            tweet.tweetId = json.getLong("id_str");
             tweet.body = json.getString("text");
             tweet.createdAt = json.getString("created_at");
             tweet.retweetCount = json.getInt("retweet_count");
@@ -101,7 +218,7 @@ public class Tweet implements Parcelable{
     }
 
     protected Tweet(Parcel in) {
-        id = in.readString();
+        tweetId = in.readLong();
         body = in.readString();
         createdAt = in.readString();
         retweetCount = in.readInt();
@@ -115,7 +232,7 @@ public class Tweet implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
+        dest.writeString(tweetId);
         dest.writeString(body);
         dest.writeString(createdAt);
         dest.writeInt(retweetCount);
@@ -133,5 +250,5 @@ public class Tweet implements Parcelable{
         public Tweet[] newArray(int size) {
             return new Tweet[size];
         }
-    };
+    };*/
 }

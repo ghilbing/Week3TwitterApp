@@ -1,6 +1,8 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.text.format.DateUtils;
 
 import com.codepath.oauth.OAuthBaseClient;
@@ -10,7 +12,9 @@ import com.github.scribejava.core.builder.api.BaseApi;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -34,6 +38,7 @@ public class TwitterClient extends OAuthBaseClient {
 	public static final String REST_CONSUMER_SECRET = "NxD5wuSF82JvvnPizqvg4L5x7ultgATKDoEV5ADCvMw2K2k9yJ"; // Change this
 	public static final int T_X_PAGE = 25;
 
+
 	// Landing page to indicate the OAuth flow worked in case Chrome for Android 25+ blocks navigation back to the app.
 	public static final String FALLBACK_URL = "https://codepath.github.io/android-rest-client-template/success.html";
 
@@ -48,41 +53,59 @@ public class TwitterClient extends OAuthBaseClient {
 				String.format(REST_CALLBACK_URL_TEMPLATE, context.getString(R.string.intent_host),
 						context.getString(R.string.intent_scheme), context.getPackageName(), FALLBACK_URL));
 	}
+
+
+	public boolean isOnline() {
+		return isNetworkOnline() && isNetworkAvailable(context);
+	}
+
+	private boolean isNetworkAvailable(Context context) {
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+	}
+
+	private boolean isNetworkOnline() {
+		Runtime runtime = Runtime.getRuntime();
+		try {
+			Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+			int exitValue = ipProcess.waitFor();
+			return (exitValue == 0);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+
 	// CHANGE THIS
 	// DEFINE METHODS for different API endpoints here
-	public void getHomeTimeline(String maxId, AsyncHttpResponseHandler handler) {
+	public void getHomeTimeline(int pageSize, long oldestTweet, long lastSeenTweet, AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
-		// Can specify query string params directly or through RequestParams.
-		RequestParams params = new RequestParams();
-		params.put("count", T_X_PAGE );
-        params.put("since", 1);
-		client.get(apiUrl, params, handler);
+		getTimeline(apiUrl, 0, pageSize, oldestTweet, lastSeenTweet, handler);
+
 	}
 
-	public void getUser(String name, AsyncHttpResponseHandler handler){
+	public void getUser(AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("users/show.json");
-		RequestParams params = new RequestParams();
-		params.put("include_entities", "false");
-		params.put("screen_name", name);
-		client.get(apiUrl, params, handler);
+		client.get(apiUrl, null, handler);
 	}
 
-	public void getMentions(String maxId, AsyncHttpResponseHandler handler){
+	public void getMentions(int pageSize, long oldestTweet, long lastSeenTweet, AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/mentions_timeline.json");
-		RequestParams params = new RequestParams();
-		params.put("count", T_X_PAGE);
-		params.put("max_id", maxId);
-		params.put("include_rts", 1);
-		client.get(apiUrl, params, handler);
+		getTimeline(apiUrl, 0, pageSize, oldestTweet, lastSeenTweet, handler);
 	}
 
-	public void getUserTimeline(String username, String maxId, AsyncHttpResponseHandler handler) {
+	public void getUserTimeline(long userId, int pageSize, long oldesTweet, long lastSeenTweet, AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/user_timeline.json");
-		RequestParams params = new RequestParams();
-		params.put("max_id", maxId);
-		params.put("screen_name", username);
-		params.put("count", T_X_PAGE);
-		client.get(apiUrl, params, handler);
+		getTimeline(apiUrl, userId, pageSize, oldesTweet, lastSeenTweet, handler);
+	}
+
+	public void getCurrentUser(AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("account/verify_credentials.json");
+		client.get(apiUrl, null, handler);
 	}
 
 	public void getCredentials(AsyncHttpResponseHandler handler) {
@@ -92,7 +115,6 @@ public class TwitterClient extends OAuthBaseClient {
 		params.put("include_entities", "false");
 		client.get(apiUrl, params, handler);
 	}
-
 
 
 	// Got this from https://gist.github.com/nesquena/f786232f5ef72f6e10a7
@@ -113,12 +135,49 @@ public class TwitterClient extends OAuthBaseClient {
 		return relativeDate;
 	}
 
-	public void postUpdate(String body, AsyncHttpResponseHandler handler){
+	public void postUpdate(String body, long inReplyId, AsyncHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/update.json");
 		RequestParams params = new RequestParams();
 		params.put("status", body);
+		if (inReplyId > 0) {
+			params.put("in_reply_to_status_id", inReplyId);
+		}
 		client.post(apiUrl, params, handler);
 	}
+
+	public void markAsFavorite(long tweetId, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("favorites/create.json");
+		RequestParams params = new RequestParams();
+		params.put("id", tweetId);
+		client.post(apiUrl, params, handler);
+
+	}
+
+	public void retweet(long tweetId, AsyncHttpResponseHandler handler) {
+		String apiUrl = String.format("%s%d.json", getApiUrl("statuses/retweet/"), tweetId);
+		client.post(apiUrl, null, handler);
+	}
+
+	private void getTimeline(String endPoint, long userId, int pageSize, long tweetMaxId, long lastSeenTweetId, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl(endPoint);
+
+		// Can specify query string params directly or through RequestParams.
+		RequestParams params = new RequestParams();
+		params.put("count", pageSize);
+
+		if (tweetMaxId > 0) {
+			params.put("max_id", tweetMaxId - 1);
+		}
+
+		if (lastSeenTweetId > 0) {
+			params.put("since_id", lastSeenTweetId);
+		}
+
+		if (userId > 0) {
+			params.put("user_id", userId);
+		}
+
+		client.get(apiUrl, params, handler);
 
 
 
@@ -130,4 +189,5 @@ public class TwitterClient extends OAuthBaseClient {
 	 *    i.e client.get(apiUrl, params, handler);
 	 *    i.e client.post(apiUrl, params, handler);
 	 */
+	}
 }

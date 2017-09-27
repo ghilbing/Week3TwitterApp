@@ -68,7 +68,19 @@
                     android:layout_marginBottom="10dp"
                     android:layout_height="wrap_content" />
 
-                <Button
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_below="@id/tvBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <include layout="@layout/action_buttons"/>
+
+                </LinearLayout>
+
+
+
+                <!--<Button
                     android:id="@+id/btnReply"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
@@ -104,7 +116,7 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_marginLeft="80dp"
                     android:background="@drawable/ic_favorite"/>
-
+-->
             </RelativeLayout>
 
         </RelativeLayout>

@@ -1,43 +1,32 @@
 package com.codepath.apps.restclienttemplate.activities;
 
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.provider.ContactsContract;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.test.suitebuilder.TestMethod;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.R;
-import com.codepath.apps.restclienttemplate.TwitterApp;
-import com.codepath.apps.restclienttemplate.TwitterClient;
-import com.codepath.apps.restclienttemplate.fragments.UserFragment;
-import com.loopj.android.http.JsonHttpResponseHandler;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.codepath.apps.restclienttemplate.fragments.ComposeTweetFragment;
+import com.codepath.apps.restclienttemplate.fragments.TweetsFragment;
+import com.codepath.apps.restclienttemplate.fragments.UserTimelineFragment;
+import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.apps.restclienttemplate.models.User;
+import com.codepath.apps.restclienttemplate.utils.TwitterControl;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import cz.msebera.android.httpclient.Header;
 
-import static com.codepath.apps.restclienttemplate.R.id.tvRetweetCount;
-
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity implements ComposeTweetFragment.OnComposeListener, TweetsFragment.OnTweetFragmentListener {
 
 
-    @Bind(R.id.ivBackground)
-    ImageView ivBackground;
+
     @Bind(R.id.toolbar)
     Toolbar toolbar;
+   /* @Bind(R.id.ivBackground)
+    ImageView ivBackground;
     @Bind(R.id.ivProfileImage)
     ImageView ivProfileImage;
     @Bind(R.id.tvProfileName)
@@ -51,10 +40,20 @@ public class ProfileActivity extends AppCompatActivity {
     @Bind(R.id.tvUserFollowingCount)
     TextView tvFollowingCount;
     @Bind(R.id.tvTagline)
-    TextView tagline;
+    TextView tagline;*/
+
+    private static String EXTRA_USER = "userId";
+
+    private long mCurrentUser;
+
+    public static Intent getStartIntent(Context context, User currentUser){
+        Intent intent = new Intent(context, ProfileActivity.class);
+        intent.putExtra(ProfileActivity.EXTRA_USER, currentUser.getRemoteId());
+        return intent;
+    }
 
 
-    TwitterClient client = TwitterApp.getRestClient();
+    //TwitterClient client = TwitterApp.getRestClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,22 +62,61 @@ public class ProfileActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        String user = getIntent().getStringExtra("usermane");
+        mCurrentUser = getIntent().getLongExtra(EXTRA_USER, 0);
+
+       /* String user = getIntent().getStringExtra("usermane");
 
         if(savedInstanceState == null){
-            UserFragment userFragment = UserFragment.newInstance(user);
+            UserTimelineFragment userFragment = UserTimelineFragment.newInstance(user);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.profileFragment, userFragment);
             transaction.commit();
-        }
+        }*/
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        if(savedInstanceState == null){
+            setupUserTimeline();
+            setupUserProfile();
+        }
 
-        populateUser(user);
+        User user = User.findUser(mCurrentUser);
+        getSupportActionBar().setTitle(user.getScreenName());
 
+
+       //populateUser(user);
+
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+
+    private void setupUserTimeline() {
+        UserTimelineFragment userTimelineFragment = UserTimelineFragment.newInstance(mCurrentUser);
+        getSupportFragmentManager().
+                beginTransaction().
+                replace(R.id.layout_timeline_placeholder, userTimelineFragment).
+                commit();
+    }
+
+    private void setupUserProfile() {
+        UserTimelineFragment userProfileFragment = UserTimelineFragment.newInstance(mCurrentUser);
+        getSupportFragmentManager().
+                beginTransaction().
+                replace(R.id.layout_user_profile_placeholder, userProfileFragment).
+                commit();
     }
 
     @Override
@@ -88,24 +126,9 @@ public class ProfileActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.logout) {
-            TwitterApp.getRestClient().clearAccessToken();
-            Intent i = new Intent(this, LoginActivity.class);
-            startActivity(i);
-        }
 
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void populateUser(String username) {
+    /*private void populateUser(String username) {
 
         if(username != null){
             client.getUser(username, handler);
@@ -145,5 +168,18 @@ public class ProfileActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-    };
+    };*/
+
+    @Override
+    public void onReplyToTweet(Tweet newTweetPost) {
+        ComposeTweetFragment tweetDialogFragment = ComposeTweetFragment.newInstance(TwitterControl.getInstance().getCurrentUser(),
+                newTweetPost);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+
+    }
 }

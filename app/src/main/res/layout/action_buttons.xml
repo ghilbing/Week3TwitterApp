@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnReply"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        style="?android:attr/borderlessButtonStyle"
+        android:background="@drawable/ic_reply"/>
+    <Button
+        android:id="@+id/btnRetweet"
+        android:layout_height="20dp"
+        android:layout_width="20dp"
+        android:layout_marginLeft="80dp"
+        android:layout_toRightOf="@id/btnReply"
+        style="?android:attr/borderlessButtonStyle"
+        android:background="@drawable/ic_retweet"/>
+    <TextView
+        android:id="@+id/tvRetweetCount"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:gravity="center_vertical"
+        style="@style/SmallLightText"
+        android:text="55"
+        android:layout_marginLeft="5dp"
+        android:layout_alignBottom="@id/btnRetweet"
+        android:layout_toEndOf="@id/btnRetweet"
+        android:layout_toRightOf="@+id/btnRetweet"/>
+    <Button
+        android:id="@+id/btnFavorite"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_toRightOf="@id/tvRetweetCount"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_marginLeft="80dp"
+        android:background="@drawable/ic_favorite"/>
+
+
+</RelativeLayout>

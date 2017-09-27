@@ -1,6 +1,7 @@
 package com.codepath.apps.restclienttemplate.activities;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.PagerAdapter;
@@ -10,28 +11,41 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.restclienttemplate.R;
 import com.codepath.apps.restclienttemplate.TwitterApp;
+import com.codepath.apps.restclienttemplate.fragments.ComposeTweetFragment;
 import com.codepath.apps.restclienttemplate.fragments.MentionsFragment;
 import com.codepath.apps.restclienttemplate.fragments.TimelineFragment;
+import com.codepath.apps.restclienttemplate.fragments.TweetsFragment;
 import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.apps.restclienttemplate.models.User;
 import com.codepath.apps.restclienttemplate.utils.SmartFragmentStatePagerAdapter;
+import com.codepath.apps.restclienttemplate.utils.TwitterControl;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity implements FloatingActionButton.OnClickListener,
+                    TweetsFragment.OnTweetFragmentListener, ComposeTweetFragment.OnComposeListener{
+
 
 
     @Bind(R.id.viewPager)
     ViewPager viewPager;
     @Bind(R.id.toolbar)
     Toolbar toolbar;
-    TweetPagerAdapter pagerAdapter;
     @Bind(R.id.tabs)
     PagerSlidingTabStrip tabStrip;
+    @Bind(R.id.fab_compose)
+    FloatingActionButton mFab;
+
+    TweetPagerAdapter pagerAdapter;
 
 
 
@@ -54,6 +68,8 @@ public class TimelineActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setLogo(R.drawable.ic_logo);
         getSupportActionBar().setDisplayUseLogoEnabled(true);
+
+        mFab.setOnClickListener(this);
 
         pagerAdapter = new TweetPagerAdapter(getSupportFragmentManager());
 
@@ -79,14 +95,15 @@ public class TimelineActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         switch (id){
-            case R.id.action_compose:
+          /*  case R.id.action_compose:
                 Intent intent = new Intent(this, ComposeActivity.class);
                 startActivityForResult(intent, ComposeActivity.REQUEST_CODE);
-                break;
+                break;*/
             case R.id.action_profile:
-                Intent intent1 = new Intent(this, ProfileActivity.class);
-                startActivity(intent1);
+                showProfile(TwitterControl.getInstance().getCurrentUser());
                 break;
+                /*Intent intent = new Intent(this, ProfileActivity.class);
+                startActivity(intent);*/
             case R.id.logout:
                 TwitterApp.getRestClient().clearAccessToken();
                 Intent i = new Intent(this, LoginActivity.class);
@@ -97,13 +114,49 @@ public class TimelineActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+    public void showProfile(User user) {
+        Intent intent = ProfileActivity.getStartIntent(this, user);
+        startActivity(intent);
+    }
+
+
+
+   /* @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == ComposeActivity.REQUEST_CODE && resultCode == ComposeActivity.REQUEST_CODE){
             Tweet tweet = data.getParcelableExtra("tweet");
             TimelineFragment timelineFragment = (TimelineFragment) pagerAdapter.getRegisteredFragment(0);
             timelineFragment.add(tweet);
         }
+    }*/
+
+    @Override
+    public void onClick(View view) {
+        composeNewTweet(null);
+    }
+
+    private void composeNewTweet(Tweet replyToTweet) {
+        ComposeTweetFragment tweetDialogFragment = ComposeTweetFragment.newInstance(TwitterControl.getInstance().getCurrentUser(),
+                replyToTweet);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet");
+    }
+
+    @Override
+    public void onReplyToTweet(Tweet newTweetPost) {
+
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+        if (newTweetPost != null) {
+            List<Tweet> newTweets = new ArrayList<>();
+            newTweets.add(newTweetPost);
+
+            //Current timeline
+            TweetsFragment tweetsFragment = (TweetsFragment) pagerAdapter.getRegisteredFragment(0);
+            tweetsFragment.putFirstTweets(newTweets, true);
+        }
+
     }
 
 
